@@ -1,15 +1,65 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "md_to_html"
 version = "0.1.0"
-description = "将 AI 生成的 Markdown 文档转换为精美可读的 HTML 文件"
+description = "将 AI 生成的 Markdown 文档转换为精美可读的 HTML 文件，支持 SenseNova AI 生图"
+readme = "README.md"
+license = {text = "MIT"}
 requires-python = ">=3.10"
+authors = [
+    {name = "Haining Yu"},
+]
+keywords = ["markdown", "html", "ai", "image-generation", "sensenova"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Text Processing :: Markup :: HTML",
+    "Topic :: Utilities",
+]
 dependencies = [
     "mistune>=3.0",
     "pygments>=2.15",
     "requests>=2.31",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1.0",
+]
+watch = [
+    "watchdog>=3.0",
+]
+
 [project.scripts]
 md_to_html = "md_to_html.cli:main"
 
+[project.urls]
+Homepage = "https://github.com/hainingyu/auto_html"
+Repository = "https://github.com/hainingyu/auto_html"
+Issues = "https://github.com/hainingyu/auto_html/issues"
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]
