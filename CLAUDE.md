@@ -1,3 +1,10 @@
+## ⚠️ 环境约束（强制）
+
+- **包管理器**：`uv pip install <pkg>`（禁止 `pip` / `python -m pip`）
+- **运行脚本**：`uv run python <script>.py`（禁止直接 `python`）
+
+---
+
 # md_to_html - Markdown 转 HTML 转换器（含 SenseNova AI 生图）
 
 ## 架构
