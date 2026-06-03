@@ -44,9 +44,9 @@ watch = [
 md_to_html = "md_to_html.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/hainingyu/auto_html"
-Repository = "https://github.com/hainingyu/auto_html"
-Issues = "https://github.com/hainingyu/auto_html/issues"
+Homepage = "https://github.com/Golden0Voyager/auto-html"
+Repository = "https://github.com/Golden0Voyager/auto-html"
+Issues = "https://github.com/Golden0Voyager/auto-html/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
