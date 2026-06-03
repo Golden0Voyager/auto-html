@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+*.html
+*.egg-info/
+
+# 测试生成的 AI 图片和输出目录
+examples/*.png
+examples/*_images/

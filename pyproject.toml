@@ -1,0 +1,15 @@
+[project]
+name = "md_to_html"
+version = "0.1.0"
+description = "将 AI 生成的 Markdown 文档转换为精美可读的 HTML 文件"
+requires-python = ">=3.10"
+dependencies = [
+    "mistune>=3.0",
+    "pygments>=2.15",
+    "requests>=2.31",
+]
+
+[project.scripts]
+md_to_html = "md_to_html.cli:main"
+
+
