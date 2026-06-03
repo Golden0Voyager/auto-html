@@ -39,6 +39,11 @@ dev = [
 watch = [
     "watchdog>=3.0",
 ]
+web = [
+    "fastapi>=0.100",
+    "uvicorn>=0.23",
+    "python-multipart>=0.0.6",
+]
 
 [project.scripts]
 md_to_html = "md_to_html.cli:main"

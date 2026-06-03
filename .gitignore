@@ -8,3 +8,4 @@ __pycache__/
 # 测试生成的 AI 图片和输出目录
 examples/*.png
 examples/*_images/
+web/output/
