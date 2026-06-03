@@ -50,6 +50,11 @@ class MarkdownImageGenerator:
 
     def generate_cover(self, md_text: str, title: str = "") -> str:
         """为文档生成封面图，返回 markdown 图片引用."""
+        filename = "cover.png"
+        if self.output_dir and (self.output_dir / filename).exists():
+            img_path = str((self.output_dir / filename).relative_to(self.output_dir.parent))
+            return f"![封面]({img_path})\n\n"
+
         prompt = sensenova_client.summarize_markdown_for_image(
             md_text, title or "文档封面", use_deepseek=self.use_deepseek
         )
@@ -63,11 +68,16 @@ class MarkdownImageGenerator:
             prompt=prompt,
             size=self._size_for_type("cover"),
         )
-        img_path = self._download(urls[0], "cover.png")
+        img_path = self._download(urls[0], filename)
         return f"![封面]({img_path})\n\n"
 
     def generate_section_image(self, section_text: str, section_title: str, index: int) -> str:
         """为章节生成配图，返回 markdown 图片引用."""
+        filename = f"section_{index:02d}.png"
+        if self.output_dir and (self.output_dir / filename).exists():
+            img_path = str((self.output_dir / filename).relative_to(self.output_dir.parent))
+            return f"\n![{section_title}]({img_path})\n\n"
+
         prompt = sensenova_client.summarize_markdown_for_image(
             section_text, section_title, use_deepseek=self.use_deepseek
         )
@@ -77,11 +87,16 @@ class MarkdownImageGenerator:
             prompt=prompt,
             size=self._size_for_type("section"),
         )
-        img_path = self._download(urls[0], f"section_{index:02d}.png")
+        img_path = self._download(urls[0], filename)
         return f"\n![{section_title}]({img_path})\n\n"
 
     def generate_infographic(self, md_text: str, title: str = "") -> str:
         """将整篇文档生成为信息图，返回 markdown 图片引用."""
+        filename = "infographic.png"
+        if self.output_dir and (self.output_dir / filename).exists():
+            img_path = str((self.output_dir / filename).relative_to(self.output_dir.parent))
+            return f"![信息图]({img_path})\n\n"
+
         # 提取核心内容作为提示词基础
         prompt_base = sensenova_client.summarize_markdown_for_image(
             md_text, title or "信息图", use_deepseek=self.use_deepseek
@@ -100,7 +115,7 @@ class MarkdownImageGenerator:
             prompt=prompt,
             size=self._size_for_type("infographic"),
         )
-        img_path = self._download(urls[0], "infographic.png")
+        img_path = self._download(urls[0], filename)
         return f"![信息图]({img_path})\n\n"
 
     def embed_images_in_markdown(
