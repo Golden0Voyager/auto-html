@@ -1,19 +1,19 @@
 from __future__ import annotations
 
+import html
 import re
 from pathlib import Path
-from typing import Optional
 
-from pygments import highlight
-from pygments.lexers import get_lexer_by_name, TextLexer
-from pygments.formatters import HtmlFormatter
 import mistune
 from mistune import HTMLRenderer
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import TextLexer, get_lexer_by_name
 
 from .styles import CSS
 
 
-def _get_lexer(code: str, info: Optional[str]):
+def _get_lexer(code: str, info: str | None):
     if info:
         try:
             return get_lexer_by_name(info.strip(), stripall=True)
@@ -30,13 +30,18 @@ class MarkdownRenderer(HTMLRenderer):
     def __init__(self):
         super().__init__()
         self.headings: list[tuple[int, str, str]] = []
+        self._used_ids: dict[str, int] = {}
 
     def heading_id(self, text: str) -> str:
         slug = text.strip().lower()
         slug = re.sub(r"[^\w\s-]", "", slug)
         slug = re.sub(r"\s+", "-", slug)
         slug = re.sub(r"-+", "-", slug).strip("-")
-        return slug or "heading"
+        if not slug:
+            slug = "heading"
+        self._used_ids[slug] = self._used_ids.get(slug, 0) + 1
+        count = self._used_ids[slug]
+        return f"{slug}-{count}" if count > 1 else slug
 
     def heading(self, text: str, level: int) -> str:
         head_id = self.heading_id(text)
@@ -44,7 +49,7 @@ class MarkdownRenderer(HTMLRenderer):
         anchor = f'<a class="anchor" href="#{head_id}" aria-hidden="true">#</a>'
         return f'<h{level} id="{head_id}">{text}{anchor}</h{level}>'
 
-    def block_code(self, code: str, info: Optional[str] = None) -> str:
+    def block_code(self, code: str, info: str | None = None) -> str:
         lexer = _get_lexer(code, info)
         formatter = HtmlFormatter(
             style="material",
@@ -57,6 +62,7 @@ class MarkdownRenderer(HTMLRenderer):
 
 
 def extract_toc(md_text: str) -> list[tuple[int, str, str]]:
+    used_ids: dict[str, int] = {}
     headings = []
     for line in md_text.splitlines():
         m = re.match(r"^(#{1,6})\s+(.+)$", line)
@@ -67,7 +73,12 @@ def extract_toc(md_text: str) -> list[tuple[int, str, str]]:
             slug = re.sub(r"[^\w\s-]", "", slug)
             slug = re.sub(r"\s+", "-", slug)
             slug = re.sub(r"-+", "-", slug).strip("-")
-            headings.append((level, title, slug or "heading"))
+            if not slug:
+                slug = "heading"
+            used_ids[slug] = used_ids.get(slug, 0) + 1
+            count = used_ids[slug]
+            anchor = f"{slug}-{count}" if count > 1 else slug
+            headings.append((level, title, anchor))
     return headings
 
 
@@ -93,7 +104,7 @@ def build_html(
     pygments_css = HtmlFormatter(style="material").get_style_defs(".code-block .highlight")
     full_css = css + "\n" + pygments_css
 
-    title_tag = title or "Markdown Document"
+    title_tag = html.escape(title or "Markdown Document")
 
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -138,7 +149,7 @@ def convert(md_text: str, title: str = "", with_toc: bool = False) -> str:
 
 def convert_file(
     input_path: Path,
-    output_path: Optional[Path] = None,
+    output_path: Path | None = None,
     title: str = "",
     with_toc: bool = False,
 ) -> Path:

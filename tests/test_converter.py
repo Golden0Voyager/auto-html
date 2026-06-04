@@ -1,8 +1,6 @@
 """Tests for converter module."""
 from pathlib import Path
 
-import pytest
-
 from md_to_html.converter import (
     build_html,
     convert,
