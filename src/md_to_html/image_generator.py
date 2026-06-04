@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Optional
 
 from . import sensenova_client
 
@@ -17,7 +16,7 @@ class MarkdownImageGenerator:
     def __init__(
         self,
         image_size: str = "2720x1536",
-        output_dir: Optional[Path] = None,
+        output_dir: Path | None = None,
         enhance_prompts: bool = False,
         use_deepseek: bool = False,
     ):
@@ -166,7 +165,6 @@ class MarkdownImageGenerator:
         in_code_block = False
 
         for line in lines:
-            # 跳过代码块
             if line.strip().startswith("```"):
                 in_code_block = not in_code_block
                 current_section.append(line)
@@ -176,35 +174,38 @@ class MarkdownImageGenerator:
                 current_section.append(line)
                 continue
 
-            # 检测到 h2 标题
             if re.match(r"^##\s+", line):
-                # 先输出之前章节的内容
                 if current_section:
                     section_text = "\n".join(current_section)
                     result_lines.append(section_text)
-                    # 为之前章节生成配图（跳过第一个空章节）
-                    if section_index > 0 or section_title:
-                        section_index += 1
+                    if section_index > 0:
+                        content_lines = [
+                            line for line in current_section
+                            if not re.match(r"^##\s+", line)
+                        ]
+                        clean_text = "\n".join(content_lines) or section_text
                         img_md = self.generate_section_image(
-                            section_text, section_title or f"章节 {section_index}", section_index
+                            clean_text, section_title, section_index
                         )
                         result_lines.append(img_md)
 
-                # 开始新章节
-                section_title = re.sub(r"^##\s+", "", line).strip()
                 section_index += 1
+                section_title = re.sub(r"^##\s+", "", line).strip()
                 current_section = [line]
             else:
                 current_section.append(line)
 
-        # 输出最后一节
         if current_section:
             section_text = "\n".join(current_section)
             result_lines.append(section_text)
             if section_index > 0:
-                section_index += 1
+                content_lines = [
+                    line for line in current_section
+                    if not re.match(r"^##\s+", line)
+                ]
+                clean_text = "\n".join(content_lines) or section_text
                 img_md = self.generate_section_image(
-                    section_text, section_title or f"章节 {section_index}", section_index
+                    clean_text, section_title, section_index
                 )
                 result_lines.append(img_md)
 
