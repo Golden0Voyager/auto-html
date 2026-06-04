@@ -53,7 +53,7 @@ convertBtn.addEventListener('click', async () => {
   const imageSize = document.getElementById('imageSize').value;
 
   const useAI = generateCover || generateSections || generateInfographic;
-  status.textContent = useAI ? '🎨 正在生成图片，请稍候...' : '⏳ 转换中...';
+  status.textContent = useAI ? '🎨 正在生成 AI 图片（约 1-3 分钟），请耐心等待...' : '⏳ 转换中...';
   convertBtn.disabled = true;
   thumbnails.innerHTML = '';
 
@@ -67,6 +67,14 @@ convertBtn.addEventListener('click', async () => {
 
   try {
     const resp = await fetch('/convert', { method: 'POST', body: formData });
+
+    if (!resp.ok) {
+      const errData = await resp.json().catch(() => null);
+      const msg = errData?.error || errData?.detail?.[0]?.msg || `服务器错误 (${resp.status})`;
+      status.textContent = `❌ ${msg}`;
+      return;
+    }
+
     const data = await resp.json();
 
     if (data.error) {
@@ -74,17 +82,18 @@ convertBtn.addEventListener('click', async () => {
       return;
     }
 
-    previewFrame.src = data.preview_url;
-    status.textContent = `✅ 转换完成！图片 ${data.images.length} 张 · Job: ${data.job_id}`;
+    previewFrame.src = data.preview_url || 'about:blank';
+    status.textContent = `✅ 转换完成！图片 ${(data.images || []).length} 张 · Job: ${data.job_id}`;
 
-    downloadBtn.href = data.preview_url;
+    downloadBtn.href = data.preview_url || '#';
     downloadBtn.style.display = 'inline-block';
     downloadBtn.download = `output_${data.job_id}.html`;
 
-    data.images.forEach(url => {
+    (data.images || []).forEach(url => {
       const img = document.createElement('img');
       img.src = url;
       img.title = url.split('/').pop();
+      img.alt = img.title;
       img.onclick = () => window.open(url, '_blank');
       thumbnails.appendChild(img);
     });
