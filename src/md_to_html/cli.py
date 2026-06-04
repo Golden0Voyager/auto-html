@@ -124,8 +124,9 @@ def main() -> None:
 
 def _watch(input_path: Path, output_path: Path | None, title: str, with_toc: bool) -> None:
     import time
-    from watchdog.observers import Observer
+
     from watchdog.events import FileSystemEventHandler
+    from watchdog.observers import Observer
 
     class Handler(FileSystemEventHandler):
         def on_modified(self, event):

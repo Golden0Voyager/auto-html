@@ -11,16 +11,17 @@ from md_to_html.cli import main
 
 class TestCliArgs:
     def test_no_args_shows_help(self, capsys):
-        with pytest.raises(SystemExit) as exc:
-            with patch.object(sys, "argv", ["md_to_html"]):
-                with patch.object(sys, "stdin", StringIO("")):
-                    main()
+        with (
+            pytest.raises(SystemExit) as exc,
+            patch.object(sys, "argv", ["md_to_html"]),
+            patch.object(sys, "stdin", StringIO("")),
+        ):
+            main()
         assert exc.value.code == 1
 
     def test_help(self, capsys):
-        with pytest.raises(SystemExit) as exc:
-            with patch.object(sys, "argv", ["md_to_html", "--help"]):
-                main()
+        with pytest.raises(SystemExit) as exc, patch.object(sys, "argv", ["md_to_html", "--help"]):
+            main()
         assert exc.value.code == 0
         captured = capsys.readouterr()
         assert "Markdown" in captured.out
@@ -59,24 +60,24 @@ class TestCliConvert:
         assert "toc" in output.read_text(encoding="utf-8")
 
     def test_nonexistent_file(self, capsys):
-        with pytest.raises(SystemExit) as exc:
-            with patch.object(sys, "argv", ["md_to_html", "/nonexistent/file.md"]):
-                main()
+        with pytest.raises(SystemExit) as exc, patch.object(sys, "argv", ["md_to_html", "/nonexistent/file.md"]):
+            main()
         assert exc.value.code == 1
         captured = capsys.readouterr()
         assert "不存在" in captured.err or "not found" in captured.err.lower()
 
     def test_stdin_mode(self, tmp_path: Path):
-        with patch.object(sys, "stdin", StringIO("# From stdin\n")):
-            with patch.object(sys, "argv", ["md_to_html"]):
-                main()
-        # stdout should contain HTML
-        # This is tricky to test because main writes to stdout
-        # We just verify it doesn't crash
+        with (
+            patch.object(sys, "stdin", StringIO("# From stdin\n")),
+            patch.object(sys, "argv", ["md_to_html"]),
+        ):
+            main()
 
     def test_empty_stdin(self, capsys):
-        with pytest.raises(SystemExit) as exc:
-            with patch.object(sys, "stdin", StringIO("")):
-                with patch.object(sys, "argv", ["md_to_html"]):
-                    main()
+        with (
+            pytest.raises(SystemExit) as exc,
+            patch.object(sys, "stdin", StringIO("")),
+            patch.object(sys, "argv", ["md_to_html"]),
+        ):
+            main()
         assert exc.value.code == 1
