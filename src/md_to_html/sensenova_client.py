@@ -6,30 +6,33 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Optional
 
 import requests
-
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 BASE_URL = "https://token.sensenova.cn/v1"
 DEFAULT_IMAGE_MODEL = "sensenova-u1-fast"
 DEFAULT_CHAT_MODEL = "sensenova-6.7-flash-lite"
-DEFAULT_REASONING_MODEL = "deepseek-v4-flash"  # 纯文本，无 reasoning 干扰
+DEFAULT_REASONING_MODEL = "deepseek-v4-flash"
 
-# U1 Fast 支持的固定尺寸（官方文档）
-IMAGE_SIZES = {
-    "1:1": "2048x2048",
-    "16:9": "2752x1536",
-    "9:16": "1536x2752",
-    "3:2": "2496x1664",
-    "2:3": "1664x2496",
-    "4:3": "2368x1760",
-    "3:4": "1760x2368",
-    "4:5": "1824x2272",
-    "5:4": "2272x1824",
-    "21:9": "3072x1376",
-    "9:21": "1344x3136",
+VALID_IMAGE_SIZES = {
+    "2048x2048", "2752x1536", "1536x2752",
+    "2496x1664", "1664x2496", "2368x1760",
+    "1760x2368", "1824x2272", "2272x1824",
+    "3072x1376", "1344x3136",
 }
+
+_session: requests.Session | None = None
+
+
+def _get_session() -> requests.Session:
+    global _session
+    if _session is None:
+        _session = requests.Session()
+        retries = Retry(total=2, backoff_factor=1, allowed_methods={"POST", "GET"})
+        _session.mount("https://", HTTPAdapter(max_retries=retries))
+    return _session
 
 
 def _api_key() -> str:
@@ -60,7 +63,7 @@ def chat_completion(
     注意: 部分模型（如 sensenova-6.7-flash-lite）默认开启 reasoning 模式，
     若 content 为空会尝试从 reasoning 字段提取或返回空字符串.
     """
-    resp = requests.post(
+    resp = _get_session().post(
         f"{BASE_URL}/chat/completions",
         headers=_headers(),
         json={
@@ -77,10 +80,8 @@ def chat_completion(
     content = msg.get("content")
     if content:
         return content
-    # 兜底：尝试从 reasoning 提取（不推荐，仅作兼容）
     reasoning = msg.get("reasoning", "")
     if reasoning:
-        # reasoning 通常很长，取最后几句作为近似内容
         lines = reasoning.strip().splitlines()
         return lines[-1] if lines else ""
     return ""
@@ -105,7 +106,11 @@ def generate_image(
     Returns:
         图片 URL 列表
     """
-    resp = requests.post(
+    if size not in VALID_IMAGE_SIZES:
+        raise ValueError(
+            f"不支持的图片尺寸 '{size}'，支持的尺寸: {', '.join(sorted(VALID_IMAGE_SIZES))}"
+        )
+    resp = _get_session().post(
         f"{BASE_URL}/images/generations",
         headers=_headers(),
         json={
@@ -123,7 +128,7 @@ def generate_image(
 
 def download_image(url: str, output_path: Path, timeout: int = 60) -> Path:
     """下载图片到本地."""
-    resp = requests.get(url, timeout=timeout)
+    resp = _get_session().get(url, timeout=timeout)
     resp.raise_for_status()
     output_path.write_bytes(resp.content)
     return output_path

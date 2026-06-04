@@ -1,17 +1,23 @@
 """Tests for sensenova_client module."""
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
 from md_to_html import sensenova_client
 
 
+def _mock_session():
+    """创建 mock session 替换 _get_session()."""
+    session = MagicMock()
+    sensenova_client._session = session
+    return session
+
+
 class TestApiKey:
     def test_missing_key_raises(self):
-        with patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(RuntimeError, match="SENSENOVA_API_KEY"):
-                sensenova_client._api_key()
+        with patch.dict(os.environ, {}, clear=True), pytest.raises(RuntimeError, match="SENSENOVA_API_KEY"):
+            sensenova_client._api_key()
 
     def test_key_from_env(self):
         with patch.dict(os.environ, {"SENSENOVA_API_KEY": "sk-test"}):
@@ -27,9 +33,9 @@ class TestHeaders:
 
 
 class TestChatCompletion:
-    @patch("md_to_html.sensenova_client.requests.post")
-    def test_success(self, mock_post):
-        mock_post.return_value = Mock(
+    def test_success(self):
+        session = _mock_session()
+        session.post.return_value = Mock(
             raise_for_status=Mock(),
             json=Mock(return_value={
                 "choices": [{"message": {"content": "hello"}}]
@@ -42,13 +48,12 @@ class TestChatCompletion:
             )
 
         assert result == "hello"
-        mock_post.assert_called_once()
-        call_args = mock_post.call_args
+        call_args = session.post.call_args
         assert call_args[1]["json"]["model"] == sensenova_client.DEFAULT_CHAT_MODEL
 
-    @patch("md_to_html.sensenova_client.requests.post")
-    def test_reasoning_fallback(self, mock_post):
-        mock_post.return_value = Mock(
+    def test_reasoning_fallback(self):
+        session = _mock_session()
+        session.post.return_value = Mock(
             raise_for_status=Mock(),
             json=Mock(return_value={
                 "choices": [{"message": {"content": "", "reasoning": "thinking...\nfinal answer"}}]
@@ -60,9 +65,9 @@ class TestChatCompletion:
 
         assert result == "final answer"
 
-    @patch("md_to_html.sensenova_client.requests.post")
-    def test_empty_response(self, mock_post):
-        mock_post.return_value = Mock(
+    def test_empty_response(self):
+        session = _mock_session()
+        session.post.return_value = Mock(
             raise_for_status=Mock(),
             json=Mock(return_value={
                 "choices": [{"message": {"content": ""}}]
@@ -76,9 +81,9 @@ class TestChatCompletion:
 
 
 class TestGenerateImage:
-    @patch("md_to_html.sensenova_client.requests.post")
-    def test_success(self, mock_post):
-        mock_post.return_value = Mock(
+    def test_success(self):
+        session = _mock_session()
+        session.post.return_value = Mock(
             raise_for_status=Mock(),
             json=Mock(return_value={
                 "data": [{"url": "https://example.com/img.png"}]
@@ -89,15 +94,19 @@ class TestGenerateImage:
             urls = sensenova_client.generate_image("a cat", size="2048x2048")
 
         assert urls == ["https://example.com/img.png"]
-        call_args = mock_post.call_args
+        call_args = session.post.call_args
         assert call_args[1]["json"]["size"] == "2048x2048"
         assert call_args[1]["json"]["prompt"] == "a cat"
 
+    def test_invalid_size_raises(self):
+        with pytest.raises(ValueError, match="不支持的图片尺寸"):
+            sensenova_client.generate_image("a cat", size="1234x5678")
+
 
 class TestDownloadImage:
-    @patch("md_to_html.sensenova_client.requests.get")
-    def test_download(self, mock_get, tmp_path):
-        mock_get.return_value = Mock(
+    def test_download(self, tmp_path):
+        session = _mock_session()
+        session.get.return_value = Mock(
             raise_for_status=Mock(),
             content=b"fake-image-data",
         )
