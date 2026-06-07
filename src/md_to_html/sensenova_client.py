@@ -53,21 +53,34 @@ def _headers() -> dict[str, str]:
 
 def chat_completion(
     messages: list[dict],
-    model: str = DEFAULT_CHAT_MODEL,
+    model: str | None = None,
     max_tokens: int = 2000,
     temperature: float = 0.7,
     timeout: int = 120,
 ) -> str:
     """调用 chat completions，返回文本内容.
 
-    注意: 部分模型（如 sensenova-6.7-flash-lite）默认开启 reasoning 模式，
-    若 content 为空会尝试从 reasoning 字段提取或返回空字符串.
+    优先使用 auto_hub.llm 的 provider chain（设置 AI_PROVIDER_CHAIN 环境变量）。
+    回退到原有的 SenseNova raw API 调用（仅需 SENSENOVA_API_KEY）。
     """
+    try:
+        from auto_hub.llm import LLMClient
+        client = LLMClient.from_env()
+        return client.chat(
+            messages=messages,
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+    except (RuntimeError, ImportError):
+        pass
+
+    effective_model = model or DEFAULT_CHAT_MODEL
     resp = _get_session().post(
         f"{BASE_URL}/chat/completions",
         headers=_headers(),
         json={
-            "model": model,
+            "model": effective_model,
             "messages": messages,
             "max_tokens": max_tokens,
             "temperature": temperature,
@@ -130,6 +143,7 @@ def download_image(url: str, output_path: Path, timeout: int = 60) -> Path:
     """下载图片到本地."""
     resp = _get_session().get(url, timeout=timeout)
     resp.raise_for_status()
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_bytes(resp.content)
     return output_path
 
