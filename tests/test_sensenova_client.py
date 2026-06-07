@@ -144,6 +144,42 @@ class TestSummarizeMarkdown:
         assert "My Section" in call_args["messages"][1]["content"]
 
 
+class TestHubPath:
+    """Verify auto_hub.llm is used as primary path, with raw API fallback."""
+
+    def test_hub_success(self):
+        with (
+            patch("auto_hub.llm.LLMClient") as mock_client,
+            patch.dict(os.environ, {"SENSENOVA_API_KEY": "sk-test"}, clear=True),
+        ):
+            instance = mock_client.from_env.return_value
+            instance.chat.return_value = "hub response"
+            result = sensenova_client.chat_completion(
+                messages=[{"role": "user", "content": "hi"}]
+            )
+
+        assert result == "hub response"
+        instance.chat.assert_called_once()
+
+    def test_hub_fallback_on_runtime_error(self):
+        session = _mock_session()
+        session.post.return_value = Mock(
+            raise_for_status=Mock(),
+            json=Mock(return_value={
+                "choices": [{"message": {"content": "fallback ok"}}]
+            }),
+        )
+
+        with (
+            patch("auto_hub.llm.LLMClient.from_env", side_effect=RuntimeError("no providers")),
+            patch.dict(os.environ, {"SENSENOVA_API_KEY": "sk-test"}, clear=True),
+        ):
+            result = sensenova_client.chat_completion(
+                messages=[{"role": "user", "content": "hi"}]
+            )
+
+        assert result == "fallback ok"
+
 class TestEnhancePrompt:
     @patch("md_to_html.sensenova_client.chat_completion")
     def test_enhance(self, mock_chat):
