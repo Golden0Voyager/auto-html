@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "将 AI 生成的 Markdown 文档转换为精美可读的 HTML 文件，支持 SenseNova AI 生图"
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 authors = [
     {name = "Haining Yu"},
 ]
@@ -18,8 +18,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Text Processing :: Markup :: HTML",
     "Topic :: Utilities",
@@ -28,6 +26,7 @@ dependencies = [
     "mistune>=3.0",
     "pygments>=2.15",
     "requests>=2.31",
+    "auto-hub",
 ]
 
 [project.optional-dependencies]
@@ -53,8 +52,14 @@ Homepage = "https://github.com/Golden0Voyager/auto-html"
 Repository = "https://github.com/Golden0Voyager/auto-html"
 Issues = "https://github.com/Golden0Voyager/auto-html/issues"
 
+[tool.uv.sources]
+auto-hub = { path = "../auto_hub", editable = true }
+
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+absolute = ["**"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -62,7 +67,7 @@ pythonpath = ["src"]
 addopts = "-v --tb=short"
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py312"
 line-length = 100
 
 [tool.ruff.lint]
