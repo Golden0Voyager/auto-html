@@ -23,7 +23,7 @@ jobs:
       - name: Install test dependencies
         # 使用 uv pip install 而非 uv sync --dev：项目通过 [tool.uv.sources]
         # 依赖同级项目 auto-hub，且无需在 CI 中安装生产依赖。
-        run: uv pip install pytest pytest-cov ruff mypy
+        run: uv venv && uv pip install pytest pytest-cov ruff mypy
 
       - name: Run ruff check
         run: uv run ruff check src/ tests/
