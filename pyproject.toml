@@ -34,6 +34,7 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "ruff>=0.1.0",
+    "mypy>=1.10.0",
 ]
 watch = [
     "watchdog>=3.0",
@@ -65,6 +66,16 @@ absolute = ["**"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-v --tb=short"
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["md_to_html"]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
 
 [tool.ruff]
 extend = "~/.config/ruff/ruff.toml"
