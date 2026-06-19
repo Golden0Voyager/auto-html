@@ -54,7 +54,7 @@ Repository = "https://github.com/Golden0Voyager/auto-html"
 Issues = "https://github.com/Golden0Voyager/auto-html/issues"
 
 [tool.uv.sources]
-auto-hub = { path = "../auto_hub", editable = true }
+auto-hub = { git = "https://github.com/Golden0Voyager/auto_hub.git", branch = "main" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
