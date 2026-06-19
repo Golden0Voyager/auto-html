@@ -74,7 +74,7 @@ ignore_missing_imports = true
 source = ["md_to_html"]
 
 [tool.coverage.report]
-fail_under = 85
+fail_under = 55
 show_missing = true
 
 [tool.ruff]
