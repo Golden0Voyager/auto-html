@@ -5,6 +5,10 @@ __pycache__/
 *.html
 *.egg-info/
 
+# Coverage
+.coverage
+htmlcov/
+
 # 测试生成的 AI 图片和输出目录
 examples/*.png
 examples/*_images/
