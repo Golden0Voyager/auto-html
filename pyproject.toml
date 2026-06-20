@@ -87,3 +87,6 @@ ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["B011", "SIM105"]
+
+[tool.bandit]
+skips = ["B101", "B311", "B404", "B603"]
