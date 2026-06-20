@@ -1,8 +1,6 @@
 """Tests for cli module — covering all code paths."""
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 from unittest.mock import patch
 
 from md_to_html.cli import main
@@ -10,9 +8,8 @@ from md_to_html.cli import main
 
 class TestCliArgs:
     def test_no_args_reads_stdin(self, capsys):
-        with patch("sys.argv", ["md_to_html"]):
-            with patch("sys.stdin.read", return_value="# Hello\n\nWorld"):
-                main()
+        with patch("sys.argv", ["md_to_html"]), patch("sys.stdin.read", return_value="# Hello\n\nWorld"):
+            main()
         captured = capsys.readouterr()
         assert "Hello" in captured.out
 
@@ -55,13 +52,12 @@ class TestCliConvert:
             main()
 
     def test_empty_stdin(self):
-        with patch("sys.argv", ["md_to_html"]):
-            with patch("sys.stdin.read", return_value=""):
-                try:
-                    main()
-                    assert False, "Should have raised SystemExit"
-                except SystemExit as e:
-                    assert e.code != 0
+        with patch("sys.argv", ["md_to_html"]), patch("sys.stdin.read", return_value=""):
+            try:
+                main()
+                assert False, "Should have raised SystemExit"
+            except SystemExit as e:
+                assert e.code != 0
 
 
 class TestCliAIImage:

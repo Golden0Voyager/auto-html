@@ -1,8 +1,7 @@
 """Tests for image_generator module — all API calls mocked."""
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from md_to_html.image_generator import MarkdownImageGenerator
 
