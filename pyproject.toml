@@ -69,6 +69,7 @@ addopts = "-v --tb=short"
 
 [tool.mypy]
 ignore_missing_imports = true
+files = ["src/md_to_html/"]
 
 [tool.coverage.run]
 source = ["md_to_html"]
