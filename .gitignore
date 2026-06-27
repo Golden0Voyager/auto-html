@@ -9,6 +9,11 @@ __pycache__/
 .coverage
 htmlcov/
 
+# Toolchain caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
 # 测试生成的 AI 图片和输出目录
 examples/*.png
 examples/*_images/
